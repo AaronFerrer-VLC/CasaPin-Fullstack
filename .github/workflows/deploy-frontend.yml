@@ -1,0 +1,39 @@
+name: Deploy frontend to Netlify
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: https://casapin-backend.fly.dev
+          VITE_BOOKING_URL: https://www.booking.com/hotel/es/vivienda-vacacional-casa-pin.es.html
+
+      - name: Deploy to Netlify (prod)
+        uses: netlify/actions/cli@v4
+        with:
+          args: deploy --dir=dist --prod --message "CI deploy ${{ github.sha }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
