@@ -1,0 +1,37 @@
+name: Deploy backend to Fly.io
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@v1
+
+      # Preparamos los secrets en la app (no expone valores)
+      - name: Stage Fly secrets
+        run: |
+          flyctl secrets set -a casapin-backend \
+            MONGODB_URI="${{ secrets.MONGODB_URI }}" \
+            CORS_ORIGIN="http://localhost:5173" \
+            CONTACT_TO="${{ secrets.CONTACT_TO }}" \
+            --stage
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Deploy (remote build, region MAD)
+        run: |
+          flyctl deploy -a casapin-backend --remote-only --primary-region mad --verbose
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
