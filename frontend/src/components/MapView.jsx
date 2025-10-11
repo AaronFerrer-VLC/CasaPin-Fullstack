@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import axios from "axios";
 import "leaflet/dist/leaflet.css";
 
+// Icono por defecto
 const icon = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
@@ -11,6 +11,14 @@ const icon = new L.Icon({
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
+});
+
+// Icono distinto para Casa Pin
+const homeIcon = new L.Icon({
+  iconUrl: "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconSize: [30, 50],
+  iconAnchor: [15, 50],
+  popupAnchor: [1, -40],
 });
 
 function ResizeHandler() {
@@ -30,38 +38,60 @@ function ResizeHandler() {
   return null;
 }
 
+// Encadra el mapa a todos los marcadores disponibles
+function FitToMarkers({ places }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!places.length) return;
+    const pts = places
+      .filter(
+        (p) =>
+          p?.coords &&
+          typeof p.coords.lat === "number" &&
+          typeof p.coords.lng === "number"
+      )
+      .map((p) => [p.coords.lat, p.coords.lng]);
+    if (pts.length) {
+      const bounds = L.latLngBounds(pts);
+      map.fitBounds(bounds, { padding: [20, 20] });
+    }
+  }, [places, map]);
+  return null;
+}
+
 export default function MapView() {
   const [places, setPlaces] = useState([]);
   const api = import.meta.env.VITE_API_BASE_URL || "";
-  const center = [43.3614, -5.8593]; // Asturias
+  const fallbackCenter = [43.3614, -5.8593]; // Asturias
 
   useEffect(() => {
-    fetch(`${api}/api/places`).then(r => r.json()).then(data => {
-      if (Array.isArray(data)) setPlaces(data);
-      else setPlaces([]);
-    }).catch(() => setPlaces([]));
+    fetch(`${api}/api/places`)
+      .then((r) => r.json())
+      .then((data) => setPlaces(Array.isArray(data) ? data : []))
+      .catch(() => setPlaces([]));
   }, [api]);
 
   return (
     <div id="mapa" className="rounded-2xl overflow-hidden border h-[420px]">
       <MapContainer
-        center={center}
+        center={fallbackCenter}
         zoom={10}
         style={{ height: "100%", width: "100%" }}
         className="rounded-2xl overflow-hidden"
       >
         <ResizeHandler />
+        <FitToMarkers places={places} />
 
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {places.map((p) => (
+        {places.map((p, idx) => (
           <Marker
-            key={p._id || `${p.coords?.lat}-${p.coords?.lng}`}
+            key={p._id || `${p.name}-${idx}`}
             position={[p.coords.lat, p.coords.lng]}
-            icon={icon}
+            icon={p.name === "Casa Pin" ? homeIcon : icon}
           >
             <Popup>
               <div className="font-medium">{p.name}</div>

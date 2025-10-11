@@ -1,0 +1,72 @@
+[
+  {
+    "name": "Casa Pin",
+    "type": "poi",
+    "description": "Tu base en Villanueva de Colombres: jardín y tranquilidad.",
+    "rating": 5,
+    "address": "Villanueva de Colombres, Ribadedeva, Asturias",
+    "url": "https://casapin.netlify.app",
+    "images": [],
+    "coords": { "lat": 43.3717, "lng": -4.5733 }
+  },
+  {
+    "name": "Playa de La Franca",
+    "type": "beach",
+    "description": "Gran arenal familiar, fácil acceso y servicios.",
+    "rating": 4.7,
+    "address": "La Franca, Ribadedeva",
+    "url": "https://www.turismoasturias.es/descubre/costa/playas/playa-de-la-franca",
+    "images": [],
+    "coords": { "lat": 43.3807, "lng": -4.5572 }
+  },
+  {
+    "name": "Playa de Buelna / Cobijeru",
+    "type": "beach",
+    "description": "Cala singular con formaciones rocosas.",
+    "rating": 4.6,
+    "address": "Buelna, Llanes",
+    "url": "https://www.turismoasturias.es/descubre/costa/playas/playa-de-buelna",
+    "images": [],
+    "coords": { "lat": 43.3932, "lng": -4.6346 }
+  },
+  {
+    "name": "Archivo de Indianos (Colombres)",
+    "type": "poi",
+    "description": "Palacete-museo sobre la emigración a América.",
+    "rating": 4.6,
+    "address": "Quinta Guadalupe, Colombres",
+    "url": "https://www.archivodeindianos.es/",
+    "images": [],
+    "coords": { "lat": 43.3733, "lng": -4.5579 }
+  },
+  {
+    "name": "Cueva del Pindal (Pimiango)",
+    "type": "activity",
+    "description": "Arte rupestre paleolítico. Visita con reserva.",
+    "rating": 4.7,
+    "address": "Pimiango, Ribadedeva",
+    "url": "https://www.turismoasturias.es/organiza-tu-viaje/que-ver/cuevas/cueva-del-pindal",
+    "images": [],
+    "coords": { "lat": 43.4112, "lng": -4.5564 }
+  },
+  {
+    "name": "Arenas de Cabrales (acceso Picos)",
+    "type": "activity",
+    "description": "Puerta de los Picos de Europa lado oriental.",
+    "rating": 4.6,
+    "address": "Arenas de Cabrales",
+    "url": "https://www.turismoasturias.es/descubre/donde-ir/municipios/cabrales",
+    "images": [],
+    "coords": { "lat": 43.2997, "lng": -4.8186 }
+  },
+  {
+    "name": "Restaurante El Mexicano",
+    "type": "restaurant",
+    "description": "Cocina tradicional mexicana.",
+    "rating": 4.5,
+    "address": "Ribadedeva",
+    "url": "https://mexicanocolombres.com/",
+    "images": [],
+    "coords": { "lat": 43.3784, "lng": -4.5403 }
+  }
+]
