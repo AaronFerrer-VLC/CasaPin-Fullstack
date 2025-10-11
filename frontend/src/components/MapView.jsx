@@ -36,17 +36,17 @@ export default function MapView() {
   const center = [43.3614, -5.8593]; // Asturias
 
   useEffect(() => {
-    axios
-      .get(`${api}/api/places`)
-      .then((r) => setPlaces(r.data))
-      .catch(() => setPlaces([]));
+    fetch(`${api}/api/places`).then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setPlaces(data);
+      else setPlaces([]);
+    }).catch(() => setPlaces([]));
   }, [api]);
 
   return (
     <div id="mapa" className="rounded-2xl overflow-hidden border h-[420px]">
       <MapContainer
         center={center}
-        zoom={9}
+        zoom={10}
         style={{ height: "100%", width: "100%" }}
         className="rounded-2xl overflow-hidden"
       >
@@ -68,6 +68,7 @@ export default function MapView() {
               <div className="text-xs text-gray-600 mb-1">
                 {p.type} · {p.rating ?? "–"}/5
               </div>
+              {p.address && <div className="text-xs">{p.address}</div>}
               {p.url && (
                 <a
                   href={p.url}
@@ -85,4 +86,3 @@ export default function MapView() {
     </div>
   );
 }
-
