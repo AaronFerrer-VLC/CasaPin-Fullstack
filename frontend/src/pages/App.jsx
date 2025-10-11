@@ -7,7 +7,7 @@ import PlaceCard from "../components/PlaceCard";
 export default function App() {
   const [places, setPlaces] = useState([]);
 
-  // Carga de lugares desde tu API (usará la DB que ya sembraste)
+  // Carga de lugares desde tu API
   useEffect(() => {
     const api = import.meta.env.VITE_API_BASE_URL || "";
     fetch(`${api}/api/places`)
@@ -16,19 +16,16 @@ export default function App() {
       .catch(() => setPlaces([]));
   }, []);
 
-  // Fotos reales: /public/casa/1.jpg ... 10.jpg (usa .webp si existe)
-  const fotosNumeros = Array.from({ length: 10 }, (_, i) => i + 1);
-  const fotos = fotosNumeros.map((n) => ({
-    webp: `/casa/${n}.webp`,
-    jpg: `/casa/${n}.jpg`,
-  }));
-
-  // Listas para las 3 columnas
+  // Listas para las 3 columnas (sin fallback)
   const beaches = places.filter((p) => p.type === "beach").slice(0, 4);
-  const food = places.filter((p) => p.type === "restaurant").slice(0, 4);
-  const plans = places
-    .filter((p) => ["activity", "poi"].includes(p.type))
-    .slice(0, 4);
+  const food    = places.filter((p) => p.type === "restaurant").slice(0, 4);
+  const plans   = places.filter((p) => ["activity", "poi"].includes(p.type)).slice(0, 4);
+
+  // Galería simple: /public/casa/1.jpg ... 10.jpg
+  const fotos = Array.from({ length: 10 }, (_, i) => i + 1);
+
+  // ¿Hay algo que mostrar en “Alrededores”?
+  const hasAround = beaches.length || food.length || plans.length;
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -52,12 +49,14 @@ export default function App() {
             >
               Reservar
             </a>
-            <a
-              href="#alrededores"
-              className="px-5 py-2.5 rounded-full border hover:bg-gray-50"
-            >
-              Explorar alrededores
-            </a>
+            {hasAround ? (
+              <a
+                href="#alrededores"
+                className="px-5 py-2.5 rounded-full border hover:bg-gray-50"
+              >
+                Explorar alrededores
+              </a>
+            ) : null}
           </div>
           <ul className="mt-6 grid grid-cols-2 gap-2 text-sm text-gray-700">
             <li>🏖️ Playas a 10–20 min</li>
@@ -66,7 +65,8 @@ export default function App() {
             <li>📶 Wi-Fi y teletrabajo</li>
           </ul>
         </div>
-        {/* Puedes sustituir la principal por cualquiera de tus fotos */}
+
+        {/* Imagen principal (ya te funciona) */}
         <img
           src="/casa/1.jpg"
           alt="Casa Pin - exterior"
@@ -83,61 +83,79 @@ export default function App() {
           bajo petición. Aparcamiento cercano.
         </p>
 
-        {/* Galería con tus fotos reales (webp/jpg) */}
+        {/* Galería: intenta .jpg y, si falla, .jpeg; si tampoco, oculta esa tarjeta */}
         <div className="mt-6 grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {fotos.map((f, i) => (
-            <picture key={i}>
-              <source srcSet={f.webp} type="image/webp" />
-              <img
-                src={f.jpg}
-                alt={`Casa Pin ${i + 1}`}
-                className="rounded-xl border h-48 w-full object-cover"
-                loading="lazy"
-              />
-            </picture>
+          {fotos.map((n) => (
+            <img
+              key={n}
+              src={`/casa/${n}.jpg`}
+              alt={`Casa Pin ${n}`}
+              className="rounded-xl border h-48 w-full object-cover"
+              loading="lazy"
+              onError={(e) => {
+                if (!e.currentTarget.dataset.triedjpeg) {
+                  e.currentTarget.dataset.triedjpeg = "1";
+                  e.currentTarget.src = `/casa/${n}.jpeg`;
+                } else {
+                  e.currentTarget.style.display = "none";
+                }
+              }}
+            />
           ))}
         </div>
       </section>
 
-      {/* ALREDEDORES */}
-      <section id="alrededores" className="max-w-6xl mx-auto px-4 py-12">
-        <h2 className="text-2xl md:text-3xl font-semibold">Alrededores</h2>
-        <p className="mt-3 text-gray-700 max-w-3xl">
-          Playas salvajes, cuevas con arte rupestre y pueblos marineros. Aquí
-          tienes una selección cercana para empezar.
-        </p>
+      {/* ALREDEDORES (solo si hay datos de la API) */}
+      {hasAround && (
+        <section id="alrededores" className="max-w-6xl mx-auto px-4 py-12">
+          <h2 className="text-2xl md:text-3xl font-semibold">Alrededores</h2>
+          <p className="mt-3 text-gray-700 max-w-3xl">
+            Playas salvajes, cuevas con arte rupestre y pueblos marineros.
+          </p>
 
-        <div className="mt-6 grid md:grid-cols-3 gap-6">
-          <div>
-            <h3 className="font-medium mb-2">Playas</h3>
-            <div className="grid gap-3">
-              {beaches.map((p) => (
-                <PlaceCard key={p._id || p.name} p={p} />
-              ))}
-            </div>
-          </div>
-          <div>
-            <h3 className="font-medium mb-2">Dónde comer</h3>
-            <div className="grid gap-3">
-              {food.map((p) => (
-                <PlaceCard key={p._id || p.name} p={p} />
-              ))}
-            </div>
-          </div>
-          <div>
-            <h3 className="font-medium mb-2">Planes en familia</h3>
-            <div className="grid gap-3">
-              {plans.map((p) => (
-                <PlaceCard key={p._id || p.name} p={p} />
-              ))}
-            </div>
-          </div>
-        </div>
+          <div className="mt-6 grid md:grid-cols-3 gap-6">
+            {beaches.length > 0 && (
+              <div>
+                <h3 className="font-medium mb-2">Playas</h3>
+                <div className="grid gap-3">
+                  {beaches.map((p) => (
+                    <PlaceCard key={p._id || p.name} p={p} />
+                  ))}
+                </div>
+              </div>
+            )}
 
-        <div className="mt-8">
-          <MapView />
-        </div>
-      </section>
+            {food.length > 0 && (
+              <div>
+                <h3 className="font-medium mb-2">Dónde comer</h3>
+                <div className="grid gap-3">
+                  {food.map((p) => (
+                    <PlaceCard key={p._id || p.name} p={p} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {plans.length > 0 && (
+              <div>
+                <h3 className="font-medium mb-2">Planes en familia</h3>
+                <div className="grid gap-3">
+                  {plans.map((p) => (
+                    <PlaceCard key={p._id || p.name} p={p} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Mapa solo si hay lugares */}
+          {places.length > 0 && (
+            <div className="mt-8">
+              <MapView />
+            </div>
+          )}
+        </section>
+      )}
 
       {/* PRECIOS */}
       <section id="precios" className="max-w-6xl mx-auto px-4 py-12">
@@ -173,40 +191,21 @@ export default function App() {
             className="rounded-xl border p-4 space-y-3"
             onSubmit={(e) => e.preventDefault()}
           >
-            <input
-              className="w-full border rounded-lg px-3 py-2"
-              placeholder="Tu nombre"
-              required
-            />
-            <input
-              className="w-full border rounded-lg px-3 py-2"
-              placeholder="Email"
-              type="email"
-              required
-            />
-            <input
-              className="w-full border rounded-lg px-3 py-2"
-              placeholder="Fechas (aprox.)"
-            />
-            <textarea
-              className="w-full border rounded-lg px-3 py-2"
-              rows="4"
-              placeholder="Mensaje"
-            ></textarea>
+            <input className="w-full border rounded-lg px-3 py-2" placeholder="Tu nombre" required />
+            <input className="w-full border rounded-lg px-3 py-2" placeholder="Email" type="email" required />
+            <input className="w-full border rounded-lg px-3 py-2" placeholder="Fechas (aprox.)" />
+            <textarea className="w-full border rounded-lg px-3 py-2" rows="4" placeholder="Mensaje" />
             <button className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
               Enviar
             </button>
           </form>
           <div className="rounded-xl border p-4">
-            <div className="mb-2">
-              📍 Villanueva de Colombres (Ribadedeva, Asturias)
-            </div>
+            <div className="mb-2">📍 Villanueva de Colombres (Ribadedeva, Asturias)</div>
             <div className="mb-2">📞 +34 600 000 000</div>
             <div className="mb-2">📧 hola@casapin.es</div>
             <a
               href="https://wa.me/34600000000?text=Hola%20Casa%20Pin,%20me%20interesa%20reservar%20del%20%7Bfecha-in%7D%20al%20%7Bfecha-out%7D%20para%20%7Bn%7D%20personas."
-              target="_blank"
-              rel="noreferrer"
+              target="_blank" rel="noreferrer"
               className="inline-block mt-2 px-4 py-2 rounded-lg border hover:bg-gray-50"
             >
               WhatsApp directo
@@ -219,4 +218,5 @@ export default function App() {
     </div>
   );
 }
+
 

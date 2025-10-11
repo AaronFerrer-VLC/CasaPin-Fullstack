@@ -13,7 +13,7 @@ const icon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-// Icono distinto para Casa Pin
+// Icono para Casa Pin
 const homeIcon = new L.Icon({
   iconUrl: "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconSize: [30, 50],
@@ -38,19 +38,13 @@ function ResizeHandler() {
   return null;
 }
 
-// Encadra el mapa a todos los marcadores disponibles
 function FitToMarkers({ places }) {
   const map = useMap();
   useEffect(() => {
-    if (!places.length) return;
     const pts = places
-      .filter(
-        (p) =>
-          p?.coords &&
-          typeof p.coords.lat === "number" &&
-          typeof p.coords.lng === "number"
-      )
+      .filter((p) => p?.coords && typeof p.coords.lat === "number" && typeof p.coords.lng === "number")
       .map((p) => [p.coords.lat, p.coords.lng]);
+
     if (pts.length) {
       const bounds = L.latLngBounds(pts);
       map.fitBounds(bounds, { padding: [20, 20] });
@@ -62,7 +56,6 @@ function FitToMarkers({ places }) {
 export default function MapView() {
   const [places, setPlaces] = useState([]);
   const api = import.meta.env.VITE_API_BASE_URL || "";
-  const fallbackCenter = [43.3614, -5.8593]; // Asturias
 
   useEffect(() => {
     fetch(`${api}/api/places`)
@@ -71,10 +64,16 @@ export default function MapView() {
       .catch(() => setPlaces([]));
   }, [api]);
 
+  // Sin datos => no renderizamos el mapa
+  if (places.length === 0) return null;
+
+  // Centro provisional (no se verá si FitToMarkers actúa)
+  const center = [43.36, -5.85];
+
   return (
     <div id="mapa" className="rounded-2xl overflow-hidden border h-[420px]">
       <MapContainer
-        center={fallbackCenter}
+        center={center}
         zoom={10}
         style={{ height: "100%", width: "100%" }}
         className="rounded-2xl overflow-hidden"
@@ -100,12 +99,7 @@ export default function MapView() {
               </div>
               {p.address && <div className="text-xs">{p.address}</div>}
               {p.url && (
-                <a
-                  href={p.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs underline"
-                >
+                <a href={p.url} target="_blank" rel="noreferrer" className="text-xs underline">
                   Ver más
                 </a>
               )}
@@ -116,3 +110,5 @@ export default function MapView() {
     </div>
   );
 }
+
+
