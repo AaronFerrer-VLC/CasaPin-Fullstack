@@ -12,8 +12,10 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const HOST = "0.0.0.0";
 const ORIGIN = process.env.CORS_ORIGIN || "*";
 
+// Middlewares
 app.use(helmet());
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
@@ -32,17 +34,22 @@ app.use("/api/contact", contactRouter);
 // Root
 app.get("/", (req, res) => res.send("CasaPin API ✔"));
 
-const start = async () => {
+async function start() {
   try {
     const uri = process.env.MONGODB_URI;
     if (!uri) throw new Error("Missing MONGODB_URI");
+
     await mongoose.connect(uri, {});
     console.log("MongoDB connected");
-    app.listen(PORT, () => console.log(`API on :${PORT}`));
+
+    app.listen(PORT, HOST, () => {
+      console.log(`API ready on http://${HOST}:${PORT}`);
+    });
   } catch (err) {
     console.error("Fatal:", err);
     process.exit(1);
   }
-};
+}
 
 start();
+
