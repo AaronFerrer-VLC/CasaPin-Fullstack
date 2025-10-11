@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import axios from "axios";
+import "leaflet/dist/leaflet.css";
 
 const icon = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -21,7 +22,7 @@ export default function MapView(){
 
   return (
     <div id="mapa" className="rounded-2xl overflow-hidden border h-[420px]">
-      <MapContainer center={center} zoom={8} className="h-full w-full">
+      <MapContainer center={[43.36, -5.85]} zoom={9} style={{ height: "520px", width: "100%" }} className="rounded-2xl overflow-hidden"/>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
