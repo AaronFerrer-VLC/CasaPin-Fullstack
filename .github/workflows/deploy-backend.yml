@@ -19,21 +19,19 @@ jobs:
       - name: Setup flyctl
         uses: superfly/flyctl-actions/setup-flyctl@v1
 
-      - name: Stage Fly secrets (Mongo, CORS, contacto)
+      - name: Stage secrets (no redeploy)
         run: |
           flyctl secrets set -a casapin-backend \
             MONGODB_URI="${{ secrets.MONGODB_URI }}" \
             CORS_ORIGIN="${{ secrets.NETLIFY_ORIGIN }}" \
             CONTACT_TO="${{ secrets.CONTACT_TO }}" \
-          GOOGLE_PLACES_API_KEY="${{ secrets.GOOGLE_PLACES_API_KEY }}" \
-          ADMIN_TOKEN="${{ secrets.ADMIN_TOKEN }}" \
             --stage
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
-      - name: Deploy (build remoto, región Paris)
-        run: |
-          flyctl deploy -a casapin-backend --remote-only --primary-region cdg --verbose
+      - name: Deploy (remote build, Paris)
+        run: flyctl deploy -a casapin-backend --remote-only --primary-region cdg --no-cache --verbose
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
 
