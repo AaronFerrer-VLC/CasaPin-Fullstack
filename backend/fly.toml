@@ -1,36 +1,40 @@
-# fly.toml app configuration file generated for casapin-backend on 2025-10-10T17:04:54+02:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'casapin-backend'
+app = "casapin-backend"
 primary_region = "cdg"
 
 [build]
-  dockerfile = 'Dockerfile'
+  dockerfile = "Dockerfile"
 
 [env]
-  PORT = '8080'
+  PORT = "8080"
 
 [[services]]
-  protocol = 'tcp'
+  protocol = "tcp"
   internal_port = 8080
-  processes = ['app']
+  processes = ["app"]
 
   [[services.ports]]
     port = 80
-    handlers = ['http']
+    handlers = ["http"]
 
   [[services.ports]]
     port = 443
-    handlers = ['tls', 'http']
+    handlers = ["tls", "http"]
 
   [services.concurrency]
-    type = 'requests'
+    type = "requests"
     hard_limit = 50
     soft_limit = 25
 
+  # ⬇️ Healthcheck explícito (clave para smoke checks)
+  [[services.http_checks]]
+    path = "/api/health"
+    method = "get"
+    interval = "10s"
+    timeout = "2s"
+    grace_period = "30s"
+
 [[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
+  memory = "1gb"
+  cpu_kind = "shared"
   cpus = 1
+
