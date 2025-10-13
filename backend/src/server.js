@@ -5,11 +5,11 @@ import morgan from "morgan";
 import helmet from "helmet";
 import compression from "compression";
 import dotenv from "dotenv";
+
 import placesRouter from "./routes/places.js";
 import contactRouter from "./routes/contact.js";
 import adminRouter from "./routes/admin.js";
-// Si tienes la ruta admin creada, puedes importarla y montarla también.
-// import adminRouter from "./routes/admin.js";
+// Si tienes admin: import adminRouter from "./routes/admin.js";
 
 dotenv.config();
 
@@ -26,7 +26,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use(cors({ origin: ORIGIN }));
 app.use(morgan("tiny"));
 
-// Healthcheck: no dependas de la DB para responder
+// Healthcheck: NO depende de la DB
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, db: dbReady, ts: new Date().toISOString() });
 });
@@ -39,12 +39,12 @@ app.use("/api/contact", contactRouter);
 // Root
 app.get("/", (req, res) => res.send("CasaPin API ✔"));
 
-// ⬇️ Arranca el servidor **una sola vez**, en 0.0.0.0:8080
+// ⬇️ Arranca UNA sola vez, en 0.0.0.0:8080
 app.listen(PORT, HOST, () => {
   console.log(`API listening on http://${HOST}:${PORT}`);
 });
 
-// ⬇️ Conecta Mongo **en segundo plano** (no mates el proceso si falla)
+// ⬇️ Conecta Mongo en segundo plano (sin tumbar proceso si falla)
 (async () => {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
@@ -57,12 +57,13 @@ app.listen(PORT, HOST, () => {
     console.log("MongoDB connected");
   } catch (err) {
     console.error("MongoDB init error:", err.message);
-    // No process.exit(); deja que la app viva y el healthcheck pase
+    // No hagas process.exit(); deja la API viva para pasar smoke checks
   }
 })();
 
-// Evita que errores no controlados tumben el proceso
+// Evita que errores sin capturar tumben el proceso
 process.on("unhandledRejection", (e) => console.error("UNHANDLED:", e));
 process.on("uncaughtException", (e) => console.error("UNCAUGHT:", e));
+
 
 
