@@ -22,17 +22,6 @@ app.use(express.json({ limit: "1mb" }));
 app.use(cors({ origin: ORIGIN }));
 app.use(morgan("tiny"));
 
-// SOLO TEMPORAL, para saber la IP de salida de Fly
-app.get("/api/egress-ip", async (req, res) => {
-  try {
-    const r = await fetch("https://api.ipify.org?format=json");
-    const j = await r.json();
-    res.json(j); // { ip: "XX.XX.XX.XX" }
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // Health
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
