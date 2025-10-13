@@ -58,7 +58,7 @@ export default function MapView() {
   }
 
   return isLoaded ? (
-    <div className="rounded-2xl overflow-hidden border">
+    <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
       <GoogleMap
         mapContainerStyle={{ width: "100%", height: `${height}px` }}
         center={center}
