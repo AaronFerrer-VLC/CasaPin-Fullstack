@@ -7,6 +7,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: frontend-deploy
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -15,7 +19,8 @@ jobs:
         working-directory: frontend
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -27,9 +32,20 @@ jobs:
       - name: Install deps
         run: npm ci
 
+      # Evita desplegar si no llega la API key a la build
+      - name: Sanity check env
+        run: |
+          if [ -z "${VITE_GOOGLE_MAPS_API_KEY}" ]; then
+            echo "❌ Falta VITE_GOOGLE_MAPS_API_KEY en la build. Revisa GitHub Secrets."
+            exit 1
+          fi
+        env:
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+
       - name: Build
         run: npm run build
         env:
+          # Variables que la build de Vite necesita en tiempo de compilación
           VITE_API_BASE_URL: https://casapin-backend.fly.dev
           VITE_BOOKING_URL: https://www.booking.com/hotel/es/vivienda-vacacional-casa-pin.es.html
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
