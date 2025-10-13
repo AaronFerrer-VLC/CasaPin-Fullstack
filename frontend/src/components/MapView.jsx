@@ -1,11 +1,5 @@
-// frontend/src/components/MapView.jsx
 import { useEffect, useMemo, useState } from "react";
-import {
-  GoogleMap,
-  Marker,
-  InfoWindowF,
-  useJsApiLoader,
-} from "@react-google-maps/api";
+import {GoogleMap,Marker,InfoWindowF,useJsApiLoader,} from "@react-google-maps/api";
 
 const containerStyle = { width: "100%", height: "520px", borderRadius: "16px" };
 
@@ -21,6 +15,12 @@ export default function MapView() {
   const [places, setPlaces] = useState([]);
   const [active, setActive] = useState(null);
 
+  const { isLoaded } = useJsApiLoader({
+  id: 'gmaps-script',
+  googleMapsApiKey: apiKey,
+  libraries: [] // o ['places'] si la necesitas
+});
+
   useEffect(() => {
     fetch(`${apiBase}/api/places`)
       .then((r) => r.json())
@@ -28,7 +28,6 @@ export default function MapView() {
       .catch(() => setPlaces([]));
   }, [apiBase]);
 
-  // Coordenadas de Casa Pin (opcionales vía env)
   const casaLat = Number(import.meta.env.VITE_CASA_LAT);
   const casaLng = Number(import.meta.env.VITE_CASA_LNG);
   const CASA =
