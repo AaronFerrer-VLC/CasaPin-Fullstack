@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, } from "react";
 import {GoogleMap,Marker,InfoWindowF,useJsApiLoader,} from "@react-google-maps/api";
 
 const containerStyle = { width: "100%", height: "520px", borderRadius: "16px" };
@@ -10,16 +10,11 @@ export default function MapView() {
   const { isLoaded } = useJsApiLoader({
     id: "gmaps-script",
     googleMapsApiKey: apiKey,
+    libraries: [] //
   });
 
   const [places, setPlaces] = useState([]);
   const [active, setActive] = useState(null);
-
-  const { isLoaded } = useJsApiLoader({
-  id: 'gmaps-script',
-  googleMapsApiKey: apiKey,
-  libraries: [] // o ['places'] si la necesitas
-});
 
   useEffect(() => {
     fetch(`${apiBase}/api/places`)
