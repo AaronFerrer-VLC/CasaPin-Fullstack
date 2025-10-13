@@ -84,25 +84,28 @@ export default function App() {
         </p>
 
         {/* Galería: intenta .jpg y, si falla, .jpeg; si tampoco, oculta esa tarjeta */}
-        <div className="mt-6 grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {fotos.map((n) => (
-            <img
-              key={n}
-              src={`/casa/${n}.jpg`}
-              alt={`Casa Pin ${n}`}
-              className="rounded-xl border h-48 w-full object-cover"
-              loading="lazy"
-              onError={(e) => {
-                if (!e.currentTarget.dataset.triedjpeg) {
-                  e.currentTarget.dataset.triedjpeg = "1";
-                  e.currentTarget.src = `/casa/${n}.jpeg`;
-                } else {
-                  e.currentTarget.style.display = "none";
-                }
-              }}
-            />
-          ))}
-        </div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {fotos.map((n) => (
+                <img
+                key={n}
+      src={`/casa/${n}.jpg`}
+      alt={`Casa Pin ${n}`}
+      className="rounded-xl border w-full object-cover aspect-[4/3]"
+      loading="lazy"
+      decoding="async"
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+      onError={(e) => {
+        if (!e.currentTarget.dataset.triedjpeg) {
+          e.currentTarget.dataset.triedjpeg = "1";
+          e.currentTarget.src = `/casa/${n}.jpeg`;
+        } else {
+          e.currentTarget.style.display = "none";
+        }
+      }}
+    />
+  ))}
+</div>
+
       </section>
 
       {/* ALREDEDORES (solo si hay datos de la API) */}
@@ -213,7 +216,13 @@ export default function App() {
           </div>
         </div>
       </section>
-
+{/* CTA flotante solo en móvil */}
+<a
+  href="#contacto"
+  className="fixed md:hidden bottom-4 inset-x-4 z-40 shadow-lg px-5 py-3 rounded-xl bg-emerald-600 text-white text-center font-medium"
+>
+  Reservar ahora
+</a>
       <Footer />
     </div>
   );

@@ -1,14 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
-import { GoogleMap, Marker, InfoWindowF, LoadScript } from "@react-google-maps/api";
-
-const containerStyle = { width: "100%", height: "520px", borderRadius: "16px" };
+import { GoogleMap, Marker, InfoWindowF, useJsApiLoader } from "@react-google-maps/api";
 
 export default function MapView() {
   const apiBase = import.meta.env.VITE_API_BASE_URL || "";
   const apiKey  = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
+  const { isLoaded } = useJsApiLoader({
+    id: "gmaps-script",
+    googleMapsApiKey: apiKey,
+  });
+
   const [places, setPlaces] = useState([]);
   const [active, setActive] = useState(null);
+  const [height, setHeight] = useState(320); // móvil
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const set = () => setHeight(mq.matches ? 520 : 320);
+    set();
+    mq.addEventListener("change", set);
+    return () => mq.removeEventListener("change", set);
+  }, []);
 
   useEffect(() => {
     fetch(`${apiBase}/api/places`)
@@ -19,9 +31,7 @@ export default function MapView() {
 
   const casaLat = Number(import.meta.env.VITE_CASA_LAT);
   const casaLng = Number(import.meta.env.VITE_CASA_LNG);
-  const CASA = (!Number.isNaN(casaLat) && !Number.isNaN(casaLng))
-    ? { lat: casaLat, lng: casaLng }
-    : null;
+  const CASA = !Number.isNaN(casaLat) && !Number.isNaN(casaLng) ? { lat: casaLat, lng: casaLng } : null;
 
   const center = useMemo(() => {
     if (CASA) return CASA;
@@ -29,29 +39,28 @@ export default function MapView() {
     return { lat: 43.36, lng: -5.85 };
   }, [CASA, places]);
 
-  const markers = useMemo(
-    () => places.map(p => ({
+  const markers = useMemo(() =>
+    places.map(p => ({
       id: p._id,
       position: { lat: p.coords.lat, lng: p.coords.lng },
       name: p.name,
       type: p.type,
       url: p.url,
     })),
-    [places]
-  );
+  [places]);
 
   if (!apiKey) {
     return (
-      <div className="rounded-2xl border h-[520px] grid place-items-center">
+      <div className="rounded-2xl border grid place-items-center" style={{ height }}>
         Falta VITE_GOOGLE_MAPS_API_KEY
       </div>
     );
   }
 
-  return (
-    <LoadScript googleMapsApiKey={apiKey} /* libraries={['places']} si las necesitas */>
+  return isLoaded ? (
+    <div className="rounded-2xl overflow-hidden border">
       <GoogleMap
-        mapContainerStyle={containerStyle}
+        mapContainerStyle={{ width: "100%", height: `${height}px` }}
         center={center}
         zoom={CASA ? 12 : 9}
         options={{ fullscreenControl: false, streetViewControl: false, mapTypeControl: false }}
@@ -64,11 +73,9 @@ export default function MapView() {
             onClick={() => setActive({ name: "Casa Pin", position: CASA, type: "Alojamiento" })}
           />
         )}
-
         {markers.map(m => (
           <Marker key={m.id} position={m.position} onClick={() => setActive(m)} />
         ))}
-
         {active && (
           <InfoWindowF position={active.position} onCloseClick={() => setActive(null)}>
             <div style={{ maxWidth: 220 }}>
@@ -83,9 +90,14 @@ export default function MapView() {
           </InfoWindowF>
         )}
       </GoogleMap>
-    </LoadScript>
+    </div>
+  ) : (
+    <div className="rounded-2xl border grid place-items-center" style={{ height }}>
+      Cargando mapa…
+    </div>
   );
 }
+
 
 
 
