@@ -1,0 +1,10 @@
+name: Fly status
+on: workflow_dispatch
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: superfly/flyctl-actions/setup-flyctl@v1
+      - run: flyctl status -a casapin-backend && flyctl logs -a casapin-backend --since 30m
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
