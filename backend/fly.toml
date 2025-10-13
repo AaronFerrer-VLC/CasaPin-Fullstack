@@ -1,4 +1,3 @@
-# fly.toml for casapin-backend
 app = "casapin-backend"
 primary_region = "cdg"
 
@@ -21,12 +20,18 @@ primary_region = "cdg"
     port = 443
     handlers = ["tls", "http"]
 
-  # Health check del servicio (smoke check)
+  # Health checks HTTP -> /api/health
   [[services.http_checks]]
     method = "get"
     path = "/api/health"
     interval = "10s"
     timeout = "2s"
-    grace_period = "30s"
+    grace_period = "90s"
+
+  # TCP check por si arranca más lento
+  [[services.tcp_checks]]
+    interval = "10s"
+    timeout = "2s"
+    grace_period = "90s"
 
 
