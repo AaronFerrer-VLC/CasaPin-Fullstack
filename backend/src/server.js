@@ -7,6 +7,7 @@ import compression from "compression";
 import dotenv from "dotenv";
 import placesRouter from "./routes/places.js";
 import contactRouter from "./routes/contact.js";
+import adminRouter from "./routes/admin.js";
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.get("/api/health", (req, res) => {
 // Routes
 app.use("/api/places", placesRouter);
 app.use("/api/contact", contactRouter);
+app.use("/api/admin", adminRouter);
 
 // Root
 app.get("/", (req, res) => res.send("CasaPin API ✔"));

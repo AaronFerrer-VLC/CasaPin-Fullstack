@@ -16,4 +16,13 @@ const PlaceSchema = new mongoose.Schema({
   coords: { type: CoordsSchema, required: true }
 }, { timestamps: true });
 
+   // === Google Places ===
+    googlePlaceId: { type: String, index: true },       // <-- nuevo
+    rating: Number,                                     // rating actual (cache)
+    userRatingsTotal: Number,                           // nº reseñas (cache)
+    ratingUpdatedAt: Date,                              // fecha de última actualización
+  },
+  { timestamps: true }
+);
+
 export default mongoose.model("Place", PlaceSchema);
