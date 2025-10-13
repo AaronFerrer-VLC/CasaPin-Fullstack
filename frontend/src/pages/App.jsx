@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import MapView from "../components/MapView";
 import PlaceCard from "../components/PlaceCard";
+import Lightbox from "../components/Lightbox";
 
 export default function App() {
   const [places, setPlaces] = useState([]);
@@ -23,6 +24,10 @@ export default function App() {
 
   // Galería simple: /public/casa/1.jpg ... 10.jpg
   const fotos = Array.from({ length: 10 }, (_, i) => i + 1);
+  const images = fotos.map((n) => `/casa/${n}.jpg`);
+
+  const [lbOpen, setLbOpen] = useState(false);
+  const [lbIndex, setLbIndex] = useState(0);
 
   // ¿Hay algo que mostrar en “Alrededores”?
   const hasAround = beaches.length || food.length || plans.length;
@@ -85,15 +90,16 @@ export default function App() {
 
         {/* Galería: intenta .jpg y, si falla, .jpeg; si tampoco, oculta esa tarjeta */}
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {fotos.map((n) => (
-                <img
-                key={n}
+  {fotos.map((n, idx) => (
+    <img
+      key={n}
       src={`/casa/${n}.jpg`}
       alt={`Casa Pin ${n}`}
-      className="rounded-xl border w-full object-cover aspect-[4/3]"
+      className="rounded-xl border w-full object-cover aspect-[4/3] cursor-zoom-in"
       loading="lazy"
       decoding="async"
       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+      onClick={() => { setLbIndex(idx); setLbOpen(true); }}
       onError={(e) => {
         if (!e.currentTarget.dataset.triedjpeg) {
           e.currentTarget.dataset.triedjpeg = "1";
@@ -105,6 +111,14 @@ export default function App() {
     />
   ))}
 </div>
+
+<Lightbox
+  open={lbOpen}
+  images={images}
+  index={lbIndex}
+  onClose={() => setLbOpen(false)}
+  onIndex={(updater) => setLbIndex(typeof updater === "function" ? updater(lbIndex) : updater)}
+/>
 
       </section>
 

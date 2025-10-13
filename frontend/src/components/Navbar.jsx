@@ -1,9 +1,8 @@
-// frontend/src/components/Navbar.jsx
 import { useState } from "react";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-
   const links = [
     { href: "#casa", label: "La casa" },
     { href: "#alrededores", label: "Alrededores" },
@@ -11,17 +10,18 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b">
+    <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/70 backdrop-blur border-b border-gray-200 dark:border-gray-800">
       <nav className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
         <a href="/" className="font-semibold">Casa Pin</a>
 
         {/* Desktop */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-4">
           {links.map(l => (
             <a key={l.href} href={l.href} className="text-sm hover:underline">
               {l.label}
             </a>
           ))}
+          <ThemeToggle />
           <a
             href="#contacto"
             className="px-3 py-1.5 rounded-full bg-emerald-600 text-white text-sm hover:bg-emerald-700"
@@ -30,9 +30,9 @@ export default function Navbar() {
           </a>
         </div>
 
-        {/* Mobile burger */}
+        {/* Burger */}
         <button
-          className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100"
+          className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
           aria-label="Abrir menú"
           aria-expanded={open}
           onClick={() => setOpen(v => !v)}
@@ -43,17 +43,16 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile panel */}
+      {/* Mobile */}
       {open && (
-        <div className="md:hidden border-t bg-white">
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
           <div className="max-w-6xl mx-auto px-4 py-2 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Tema</span>
+              <ThemeToggle />
+            </div>
             {links.map(l => (
-              <a
-                key={l.href}
-                href={l.href}
-                className="py-2"
-                onClick={() => setOpen(false)}
-              >
+              <a key={l.href} href={l.href} className="py-2" onClick={() => setOpen(false)}>
                 {l.label}
               </a>
             ))}
@@ -70,3 +69,4 @@ export default function Navbar() {
     </header>
   );
 }
+
