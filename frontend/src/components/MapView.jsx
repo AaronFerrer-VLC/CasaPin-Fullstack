@@ -1,114 +1,124 @@
-import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+// frontend/src/components/MapView.jsx
+import { useEffect, useMemo, useState } from "react";
+import {
+  GoogleMap,
+  Marker,
+  InfoWindowF,
+  useJsApiLoader,
+} from "@react-google-maps/api";
 
-// Icono por defecto
-const icon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-// Icono para Casa Pin
-const homeIcon = new L.Icon({
-  iconUrl: "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconSize: [30, 50],
-  iconAnchor: [15, 50],
-  popupAnchor: [1, -40],
-});
-
-function ResizeHandler() {
-  const map = useMap();
-  useEffect(() => {
-    const fix = () => map.invalidateSize({ animate: false });
-    const t = setTimeout(fix, 150);
-    window.addEventListener("resize", fix);
-    const ro = new ResizeObserver(fix);
-    ro.observe(map.getContainer());
-    return () => {
-      clearTimeout(t);
-      window.removeEventListener("resize", fix);
-      ro.disconnect();
-    };
-  }, [map]);
-  return null;
-}
-
-function FitToMarkers({ places }) {
-  const map = useMap();
-  useEffect(() => {
-    const pts = places
-      .filter((p) => p?.coords && typeof p.coords.lat === "number" && typeof p.coords.lng === "number")
-      .map((p) => [p.coords.lat, p.coords.lng]);
-
-    if (pts.length) {
-      const bounds = L.latLngBounds(pts);
-      map.fitBounds(bounds, { padding: [20, 20] });
-    }
-  }, [places, map]);
-  return null;
-}
+const containerStyle = { width: "100%", height: "520px", borderRadius: "16px" };
 
 export default function MapView() {
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  const { isLoaded } = useJsApiLoader({
+    id: "gmaps-script",
+    googleMapsApiKey: apiKey,
+  });
+
   const [places, setPlaces] = useState([]);
-  const api = import.meta.env.VITE_API_BASE_URL || "";
+  const [active, setActive] = useState(null);
 
   useEffect(() => {
-    fetch(`${api}/api/places`)
+    fetch(`${apiBase}/api/places`)
       .then((r) => r.json())
-      .then((data) => setPlaces(Array.isArray(data) ? data : []))
+      .then((d) => (Array.isArray(d) ? setPlaces(d) : setPlaces([])))
       .catch(() => setPlaces([]));
-  }, [api]);
+  }, [apiBase]);
 
-  // Sin datos => no renderizamos el mapa
-  if (places.length === 0) return null;
+  // Coordenadas de Casa Pin (opcionales vía env)
+  const casaLat = Number(import.meta.env.VITE_CASA_LAT);
+  const casaLng = Number(import.meta.env.VITE_CASA_LNG);
+  const CASA =
+    !Number.isNaN(casaLat) && !Number.isNaN(casaLng)
+      ? { lat: casaLat, lng: casaLng }
+      : null;
 
-  // Centro provisional (no se verá si FitToMarkers actúa)
-  const center = [43.36, -5.85];
+  const center = useMemo(() => {
+    if (CASA) return CASA;
+    if (places.length)
+      return { lat: places[0].coords.lat, lng: places[0].coords.lng };
+    return { lat: 43.36, lng: -5.85 }; // Asturias por defecto
+  }, [CASA, places]);
 
-  return (
-    <div id="mapa" className="rounded-2xl overflow-hidden border h-[420px]">
-      <MapContainer
-        center={center}
-        zoom={10}
-        style={{ height: "100%", width: "100%" }}
-        className="rounded-2xl overflow-hidden"
-      >
-        <ResizeHandler />
-        <FitToMarkers places={places} />
+  const markers = useMemo(
+    () =>
+      places.map((p) => ({
+        id: p._id,
+        position: { lat: p.coords.lat, lng: p.coords.lng },
+        name: p.name,
+        type: p.type,
+        url: p.url,
+      })),
+    [places]
+  );
 
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+  if (!apiKey) {
+    return (
+      <div className="rounded-2xl border h-[520px] grid place-items-center">
+        Falta VITE_GOOGLE_MAPS_API_KEY
+      </div>
+    );
+  }
+
+  return isLoaded ? (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={CASA ? 12 : 9}
+      options={{
+        fullscreenControl: false,
+        streetViewControl: false,
+        mapTypeControl: false,
+      }}
+      onClick={() => setActive(null)}
+    >
+      {CASA && (
+        <Marker
+          position={CASA}
+          label="🏠"
+          onClick={() =>
+            setActive({ name: "Casa Pin", position: CASA, type: "Alojamiento" })
+          }
         />
+      )}
 
-        {places.map((p, idx) => (
-          <Marker
-            key={p._id || `${p.name}-${idx}`}
-            position={[p.coords.lat, p.coords.lng]}
-            icon={p.name === "Casa Pin" ? homeIcon : icon}
-          >
-            <Popup>
-              <div className="font-medium">{p.name}</div>
-              <div className="text-xs text-gray-600 mb-1">
-                {p.type} · {p.rating ?? "–"}/5
-              </div>
-              {p.address && <div className="text-xs">{p.address}</div>}
-              {p.url && (
-                <a href={p.url} target="_blank" rel="noreferrer" className="text-xs underline">
-                  Ver más
-                </a>
-              )}
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+      {markers.map((m) => (
+        <Marker key={m.id} position={m.position} onClick={() => setActive(m)} />
+      ))}
+
+      {active && (
+        <InfoWindowF
+          position={active.position}
+          onCloseClick={() => setActive(null)}
+        >
+          <div style={{ maxWidth: 220 }}>
+            <div style={{ fontWeight: 600 }}>{active.name}</div>
+            {active.type && (
+              <div style={{ fontSize: 12, color: "#6b7280" }}>{active.type}</div>
+            )}
+            {active.url && (
+              <a
+                href={active.url}
+                target="_blank"
+                rel="noreferrer"
+                style={{ fontSize: 12, textDecoration: "underline" }}
+              >
+                Ver más
+              </a>
+            )}
+          </div>
+        </InfoWindowF>
+      )}
+    </GoogleMap>
+  ) : (
+    <div className="rounded-2xl border h-[520px] grid place-items-center">
+      Cargando mapa…
     </div>
   );
 }
+
 
 
