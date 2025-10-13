@@ -1,3 +1,4 @@
+# fly.toml for casapin-backend
 app = "casapin-backend"
 primary_region = "cdg"
 
@@ -20,20 +21,12 @@ primary_region = "cdg"
     port = 443
     handlers = ["tls", "http"]
 
-  [services.concurrency]
-    type = "requests"
-    hard_limit = 50
-    soft_limit = 25
+  # Health check del servicio (smoke check)
+  [[services.http_checks]]
+    method = "get"
+    path = "/api/health"
+    interval = "10s"
+    timeout = "2s"
+    grace_period = "30s"
 
-[[services.http_checks]]
-  path = "/api/health"
-  method = "get"
-  interval = "10s"
-  timeout = "2s"
-  grace_period = "30s"
-
-[[vm]]
-  memory = "1gb"
-  cpu_kind = "shared"
-  cpus = 1
 

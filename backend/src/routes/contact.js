@@ -2,8 +2,9 @@ import { Router } from "express";
 import nodemailer from "nodemailer";
 
 const router = Router();
-const CONTACT_TO = process.env.CONTACT_TO || ""; // si falta, respondemos 202 y logeamos
+const CONTACT_TO = process.env.CONTACT_TO || "";
 
+// POST /api/contact
 router.post("/", async (req, res) => {
   try {
     const { name = "", email = "", message = "" } = req.body || {};
@@ -13,16 +14,14 @@ router.post("/", async (req, res) => {
       return res.status(202).json({ ok: true, skipped: "CONTACT_TO missing" });
     }
 
-    // Crea el transporter DENTRO de la ruta (no al importar el archivo)
     const transporter = nodemailer.createTransport({
-      // Ejemplo SMTP genérico o el tuyo; si usas Gmail OAuth2 cambia esto
       host: process.env.SMTP_HOST || "smtp.gmail.com",
       port: Number(process.env.SMTP_PORT || 587),
       secure: false,
-      auth: process.env.SMTP_USER && process.env.SMTP_PASS ? {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      } : undefined,
+      auth:
+        process.env.SMTP_USER && process.env.SMTP_PASS
+          ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+          : undefined,
     });
 
     await transporter.sendMail({
@@ -40,4 +39,5 @@ router.post("/", async (req, res) => {
 });
 
 export default router;
+
 
