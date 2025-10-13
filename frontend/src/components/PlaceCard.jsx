@@ -6,22 +6,26 @@ export default function PlaceCard({ p = {} }) {
     type,
     rating,
     url,
-    desc,
     description,
-    about,
-    image,
-    photo,
-    img,
+    address,
+    images,
     coords,
   } = p;
 
-  const [showImg, setShowImg] = useState(Boolean(image || photo || img));
-  const imgSrc = image || photo || img || ""; // si no hay, mostramos fallback visual
+  // Imagen principal: primer elemento de images[], con fallback a otros posibles campos si existiesen
+  const imgCandidates = [
+    Array.isArray(images) ? images[0] : undefined,
+    p.image,
+    p.photo,
+    p.img,
+  ].filter(Boolean);
 
-  const text = desc || description || about || "";
-  const hasCoords = Boolean(coords?.lat && coords?.lng);
+  const [imgSrc, setImgSrc] = useState(imgCandidates[0] || "");
 
-  // Link "Cómo llegar" desde Casa Pin (si hay coords)
+  const hasCoords =
+    coords && typeof coords.lat === "number" && typeof coords.lng === "number";
+
+  // Link "Cómo llegar" desde Casa Pin (si hay coords y tenemos lat/lng en env)
   const casaLat = Number(import.meta.env.VITE_CASA_LAT);
   const casaLng = Number(import.meta.env.VITE_CASA_LNG);
   const howToGoHref = useMemo(() => {
@@ -36,30 +40,30 @@ export default function PlaceCard({ p = {} }) {
   return (
     <article className="group rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden hover:shadow-md transition">
       {/* Imagen / Fallback */}
-      {showImg ? (
-        <div className="aspect-[16/9] w-full overflow-hidden">
+      <div className="aspect-[16/9] w-full overflow-hidden">
+        {imgSrc ? (
           <img
             src={imgSrc}
             alt={name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             loading="lazy"
             decoding="async"
-            onError={() => setShowImg(false)}
+            onError={() => setImgSrc("")}
           />
-        </div>
-      ) : (
-        <div className="aspect-[16/9] w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 grid place-items-center">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {type ? `Sin imagen · ${type}` : "Sin imagen"}
+        ) : (
+          <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 grid place-items-center">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {type ? `Sin imagen · ${type}` : "Sin imagen"}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Contenido */}
       <div className="p-3">
         <div className="flex items-start justify-between gap-3">
           <h4 className="font-medium leading-snug">{name}</h4>
-          {typeof rating !== "undefined" && rating !== null && (
+          {rating != null && (
             <span className="shrink-0 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
               ⭐ {rating}/5
             </span>
@@ -67,10 +71,10 @@ export default function PlaceCard({ p = {} }) {
         </div>
 
         <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-          {type || "Lugar"}{hasCoords ? " · con mapa" : ""}
+          {type || "Lugar"}{address ? ` · ${address}` : ""}
         </div>
 
-        {text && (
+        {description && (
           <p
             className="mt-2 text-sm text-gray-700 dark:text-gray-300"
             style={{
@@ -79,8 +83,9 @@ export default function PlaceCard({ p = {} }) {
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
             }}
+            title={description}
           >
-            {text}
+            {description}
           </p>
         )}
 
@@ -96,7 +101,6 @@ export default function PlaceCard({ p = {} }) {
               Ver ficha
             </a>
           )}
-
           {howToGoHref && (
             <a
               href={howToGoHref}
