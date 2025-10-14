@@ -265,65 +265,47 @@ const handleSubmit = async (e) => {
           ¿Dudas o disponibilidad? Escríbenos y te respondemos rápido.
         </p>
         <div className="mt-6 grid md:grid-cols-2 gap-6">
-          <form className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3"onSubmit={handleSubmit}
-          {/* Mensajes de estado */}
-          {status && (
-              <div
-              className={`text-sm rounded-lg px-3 py-2 ${
-                  status.ok
-                  ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200"
-                  : "bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-200"
-                  }`}
-              role="status"
-              aria-live="polite">
-              {status.msg}
-              </div>
-              )}
-          <input
-          name="name"
-          value={form.name}
-          onChange={onChange}
-          className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-          placeholder="Tu nombre"
-          required
-          />
+          <form
+  className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3"
+  onSubmit={handleSubmit}
+>
+  {/* Mensajes de estado */}
+  {status && (
+    <div
+      className={`text-sm rounded-lg px-3 py-2 ${
+        status.ok
+          ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200"
+          : "bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-200"
+      }`}
+      role="status"
+      aria-live="polite"
+    >
+      {status.msg}
+    </div>
+  )}
 
-  <input
-    name="email"
-    value={form.email}
-    onChange={onChange}
+  <input name="name" value={form.name} onChange={onChange}
     className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-    placeholder="Email"
-    type="email"
-    required
-  />
+    placeholder="Tu nombre" required />
 
-  <input
-    name="dates"
-    value={form.dates}
-    onChange={onChange}
+  <input name="email" value={form.email} onChange={onChange}
     className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-    placeholder="Fechas (aprox.)"
-  />
+    placeholder="Email" type="email" required />
 
-  <textarea
-    name="message"
-    value={form.message}
-    onChange={onChange}
+  <input name="dates" value={form.dates} onChange={onChange}
     className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-    rows="4"
-    placeholder="Mensaje"
-    required
-  />
+    placeholder="Fechas (aprox.)" />
 
-  <button
-    type="submit"
-    disabled={sending}
-    className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
-  >
+  <textarea name="message" value={form.message} onChange={onChange}
+    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
+    rows="4" placeholder="Mensaje" required />
+
+  <button type="submit" disabled={sending}
+    className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60">
     {sending ? "Enviando…" : "Enviar"}
   </button>
 </form>
+
 
           <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
             <div className="mb-2 text-gray-800 dark:text-gray-200">
