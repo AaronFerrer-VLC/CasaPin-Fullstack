@@ -32,6 +32,64 @@ export default function App() {
   // ¿Hay algo que mostrar en “Alrededores”?
   const hasAround = beaches.length || food.length || plans.length;
 
+// URL base de la API
+const api = import.meta.env.VITE_API_BASE_URL || "";
+
+// Estado del formulario
+const [form, setForm] = useState({
+  name: "",
+  email: "",
+  dates: "",
+  message: "",
+});
+
+// Estado de envío y resultado
+const [sending, setSending] = useState(false);
+const [status, setStatus] = useState(null); // { ok: boolean, msg: string }
+
+// Helpers
+const onChange = (e) => {
+  const { name, value } = e.target;
+  setForm((f) => ({ ...f, [name]: value }));
+};
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setSending(true);
+  setStatus(null);
+
+  try {
+    const res = await fetch(`${api}/api/contact`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    if (!res.ok) {
+      // intenta leer mensaje del servidor
+      let msg = "No se pudo enviar. Inténtalo de nuevo.";
+      try {
+        const data = await res.json();
+        if (data?.error) msg = data.error;
+      } catch {}
+      throw new Error(msg);
+    }
+
+    setStatus({ ok: true, msg: "¡Mensaje enviado! Te responderemos muy pronto." });
+    setForm({ name: "", email: "", dates: "", message: "" });
+  } catch (err) {
+    setStatus({
+      ok: false,
+      msg:
+        err.message ||
+        "No se pudo enviar. Escríbenos a hola@casapin.es si el problema persiste.",
+    });
+  } finally {
+    setSending(false);
+  }
+};
+
+
   return (
     <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100">
       <Navbar />
@@ -207,30 +265,66 @@ export default function App() {
           ¿Dudas o disponibilidad? Escríbenos y te respondemos rápido.
         </p>
         <div className="mt-6 grid md:grid-cols-2 gap-6">
-          <form
-            className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <input
-              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-              placeholder="Tu nombre" required
-            />
-            <input
-              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-              placeholder="Email" type="email" required
-            />
-            <input
-              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-              placeholder="Fechas (aprox.)"
-            />
-            <textarea
-              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-              rows="4" placeholder="Mensaje"
-            />
-            <button className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
-              Enviar
-            </button>
-          </form>
+          <form className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3"onSubmit={handleSubmit}
+          {/* Mensajes de estado */}
+          {status && (
+              <div
+              className={`text-sm rounded-lg px-3 py-2 ${
+                  status.ok
+                  ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200"
+                  : "bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-200"
+                  }`}
+              role="status"
+              aria-live="polite">
+              {status.msg}
+              </div>
+              )}
+          <input
+          name="name"
+          value={form.name}
+          onChange={onChange}
+          className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
+          placeholder="Tu nombre"
+          required
+          />
+
+  <input
+    name="email"
+    value={form.email}
+    onChange={onChange}
+    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
+    placeholder="Email"
+    type="email"
+    required
+  />
+
+  <input
+    name="dates"
+    value={form.dates}
+    onChange={onChange}
+    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
+    placeholder="Fechas (aprox.)"
+  />
+
+  <textarea
+    name="message"
+    value={form.message}
+    onChange={onChange}
+    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
+    rows="4"
+    placeholder="Mensaje"
+    required
+  />
+
+  <button
+    type="submit"
+    disabled={sending}
+    className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+  >
+    {sending ? "Enviando…" : "Enviar"}
+  </button>
+</form>
+
           <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
             <div className="mb-2 text-gray-800 dark:text-gray-200">
               📍 Villanueva de Colombres (Ribadedeva, Asturias)
