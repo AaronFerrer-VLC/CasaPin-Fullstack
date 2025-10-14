@@ -4,7 +4,6 @@ import nodemailer from "nodemailer";
 const router = Router();
 const CONTACT_TO = process.env.CONTACT_TO || "";
 
-// POST /api/contact
 router.post("/", async (req, res) => {
   try {
     const { name = "", email = "", message = "" } = req.body || {};

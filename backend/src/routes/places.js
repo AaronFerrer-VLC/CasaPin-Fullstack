@@ -3,7 +3,6 @@ import Place from "../models/Place.js";
 
 const router = express.Router();
 
-// GET /api/places?type=restaurant|beach|activity|poi
 router.get("/", async (req, res) => {
   try {
     const { type } = req.query;

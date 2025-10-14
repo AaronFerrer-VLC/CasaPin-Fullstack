@@ -4,7 +4,6 @@ import { fetchPlaceDetails } from "../services/googlePlaces.js";
 
 const router = express.Router();
 
-// Protección simple por token de cabecera Authorization: Bearer <ADMIN_TOKEN>
 function requireAdmin(req, res, next) {
   const auth = req.get("authorization") || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
@@ -14,11 +13,6 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-/**
- * POST /api/admin/refresh-ratings
- * Refresca rating/userRatingsTotal de los places que tengan googlePlaceId.
- * Query opcional: ?limit=50
- */
 router.post("/refresh-ratings", requireAdmin, async (req, res) => {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) return res.status(500).json({ ok: false, error: "Missing GOOGLE_PLACES_API_KEY" });
@@ -37,8 +31,7 @@ router.post("/refresh-ratings", requireAdmin, async (req, res) => {
       p.rating = d.rating ?? p.rating ?? null;
       p.userRatingsTotal = d.userRatingsTotal ?? p.userRatingsTotal ?? null;
       p.ratingUpdatedAt = new Date();
-      // Si no tienes url o prefieres la de Google, puedes setear:
-      // if (!p.url && d.googleUrl) p.url = d.googleUrl;
+
       await p.save();
       ok++;
       results.push({ id: p._id, name: p.name, rating: p.rating, userRatingsTotal: p.userRatingsTotal });

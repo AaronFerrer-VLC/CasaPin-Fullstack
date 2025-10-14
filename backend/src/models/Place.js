@@ -1,4 +1,3 @@
-// backend/src/models/Place.js
 import mongoose from "mongoose";
 
 const PlaceSchema = new mongoose.Schema(
@@ -21,7 +20,6 @@ const PlaceSchema = new mongoose.Schema(
       lng: { type: Number, required: true },
     },
 
-    // 👇 ESTA ES LA LÍNEA NUEVA, PERO DENTRO DEL OBJETO
     googlePlaceId: { type: String, index: true },
   },
   { timestamps: true }
