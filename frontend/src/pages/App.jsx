@@ -40,7 +40,7 @@ export default function App() {
       <section className="max-w-6xl mx-auto px-4 pt-8 pb-12 grid md:grid-cols-2 gap-8 items-center">
         <div>
           <h1 className="text-3xl md:text-5xl font-semibold leading-tight">
-            Casa Pin · Villanueva de Colombres
+            Casa Pin
           </h1>
           <p className="mt-4 text-lg text-gray-700 dark:text-gray-300">
             Una casa rural familiar entre el Cantábrico y los Picos de Europa.
