@@ -5,12 +5,11 @@ import {
   MarkerF,
   DirectionsRenderer,
   useJsApiLoader,
-  Autocomplete,
 } from "@react-google-maps/api";
 
-const CONTAINER_STYLE = { width: "100%", height: "520px", borderRadius: "16px" };
-// 👇 clave para evitar la alerta: NO recrear este array en cada render
+// ⛔️ MUY IMPORTANTE: mantener la constante fuera del componente
 const LIBRARIES = ["places"];
+const CONTAINER_STYLE = { width: "100%", height: "520px", borderRadius: "16px" };
 
 export default function MapView() {
   const apiBase = import.meta.env.VITE_API_BASE_URL || "";
@@ -24,11 +23,11 @@ export default function MapView() {
 
   const [places, setPlaces] = useState([]);
   const [directions, setDirections] = useState(null);
-  const [dest, setDest] = useState(null); // {lat, lng, name?}
+  const [dest, setDest] = useState(null); // { lat, lng, name? }
 
-  const acRef = useRef(null);
   const mapRef = useRef(null);
 
+  // Carga de tus lugares desde la API
   useEffect(() => {
     fetch(`${apiBase}/api/places`)
       .then((r) => r.json())
@@ -36,7 +35,7 @@ export default function MapView() {
       .catch(() => setPlaces([]));
   }, [apiBase]);
 
-  // Coordenadas Casa Pin (desde .env)
+  // Coordenadas Casa Pin (env)
   const casaLat = Number(import.meta.env.VITE_CASA_LAT);
   const casaLng = Number(import.meta.env.VITE_CASA_LNG);
   const CASA =
@@ -46,41 +45,62 @@ export default function MapView() {
 
   const center = useMemo(() => CASA, [CASA]);
 
-  // Calcula ruta (Casa -> destino)
+  // Fallback externo (si Directions API no está habilitada)
+  const openExternalDirections = (to) => {
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${CASA.lat},${CASA.lng}&destination=${to.lat},${to.lng}&travelmode=driving`;
+    window.open(url, "_blank", "noopener");
+  };
+
+  // Calcula ruta Casa -> destino (si falla, abre Google Maps)
   const routeTo = async (to) => {
     if (!isLoaded || !to) return;
     try {
-      // Usa el servicio de direcciones del JS API
+      // Si no existe el servicio (o no está habilitada Directions API), hacemos fallback
+      if (!window.google?.maps?.DirectionsService) {
+        openExternalDirections(to);
+        return;
+      }
+
       const svc = new window.google.maps.DirectionsService();
       const res = await svc.route({
         origin: CASA,
         destination: to,
         travelMode: window.google.maps.TravelMode.DRIVING,
       });
+
       setDirections(res);
       setDest(to);
-      // centra el mapa en la ruta
+
       if (mapRef.current && res.routes?.[0]?.bounds) {
         mapRef.current.fitBounds(res.routes[0].bounds);
       }
     } catch (err) {
-      console.error("Directions error:", err);
-      alert(
-        "No se ha podido calcular la ruta (revisa que la API de Directions esté habilitada y la key permita este dominio)."
-      );
+      console.warn("Directions error, abriendo Google Maps:", err);
+      openExternalDirections(to);
     }
   };
 
-  // Cuando el usuario elige un sitio en el Autocomplete
-  const onPlaceChanged = () => {
-    const ac = acRef.current;
-    if (!ac) return;
-    const place = ac.getPlace();
-    const loc = place?.geometry?.location;
-    if (!loc) return;
-    const to = { lat: loc.lat(), lng: loc.lng(), name: place.name };
-    routeTo(to);
-  };
+  // Conectar el web-component de autocomplete al input
+  useEffect(() => {
+    if (!isLoaded) return;
+    const el = document.querySelector("gmpx-place-autocomplete");
+    if (!el) return;
+
+    const onChange = () => {
+      const p = el.value; // objeto Place del web-component
+      const loc = p?.location;
+      if (!loc) return;
+      const to = {
+        lat: loc.lat,
+        lng: loc.lng,
+        name: p.displayName || p.formattedAddress,
+      };
+      routeTo(to);
+    };
+
+    el.addEventListener("gmpx-placechange", onChange);
+    return () => el.removeEventListener("gmpx-placechange", onChange);
+  }, [isLoaded]); // no dependas de nada más
 
   if (!apiKey) {
     return (
@@ -91,34 +111,16 @@ export default function MapView() {
   }
 
   return isLoaded ? (
-    <div className="relative">
-      {/* Barra de búsqueda */}
-      <div className="absolute z-10 left-3 top-3 right-3 md:left-4 md:right-auto">
-        <div className="flex gap-2 bg-white dark:bg-gray-900 border rounded-xl p-2 shadow">
-          <Autocomplete
-            onLoad={(ac) => (acRef.current = ac)}
-            onPlaceChanged={onPlaceChanged}
-          >
-            <input
-              type="text"
-              placeholder="Buscar sitio cercano..."
-              className="flex-1 px-3 py-2 rounded-lg border outline-none bg-white dark:bg-gray-900"
-            />
-          </Autocomplete>
-          <button
-            className="px-3 py-2 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800"
-            onClick={() => {
-              setDirections(null);
-              setDest(null);
-              if (mapRef.current) {
-                mapRef.current.panTo(CASA);
-                mapRef.current.setZoom(12);
-              }
-            }}
-          >
-            Limpiar ruta
-          </button>
-        </div>
+    <div className="relative space-y-3">
+      {/* Barra de búsqueda (nuevo Autocomplete) */}
+      <div className="relative">
+        <input
+          id="map-search"
+          className="w-full rounded-xl border px-3 py-2 text-sm dark:bg-gray-900 dark:border-gray-700"
+          placeholder="Buscar sitio cercano (playa, restaurante, mirador...)"
+        />
+        {/* Vinculamos el input por id */}
+        <gmpx-place-autocomplete for="map-search"></gmpx-place-autocomplete>
       </div>
 
       <GoogleMap
@@ -131,14 +133,11 @@ export default function MapView() {
           streetViewControl: false,
           mapTypeControl: false,
         }}
-        onClick={() => {
-          // cerrar info / limpiar selección si quieres
-        }}
       >
-        {/* Marca de la casa */}
+        {/* Casa Pin */}
         <MarkerF position={CASA} label="🏠" />
 
-        {/* Marcadores de tu API (clic = trazar ruta) */}
+        {/* Marcadores de tu API: clic = intentar ruta (o abrir Google Maps) */}
         {places.map((p) => {
           const pos = { lat: p?.coords?.lat, lng: p?.coords?.lng };
           if (!pos.lat || !pos.lng) return null;
@@ -146,15 +145,40 @@ export default function MapView() {
             <MarkerF
               key={p._id || p.name}
               position={pos}
-              onClick={() => routeTo({ ...pos, name: p.name })}
               title={p.name}
+              onClick={() => routeTo({ ...pos, name: p.name })}
             />
           );
         })}
 
-        {/* Dibujo de la ruta */}
+        {/* Dibujo de la ruta, si se pudo calcular */}
         {directions && <DirectionsRenderer directions={directions} />}
       </GoogleMap>
+
+      {/* Botón limpiar */}
+      <div className="flex gap-2">
+        <button
+          className="px-3 py-2 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800"
+          onClick={() => {
+            setDirections(null);
+            setDest(null);
+            if (mapRef.current) {
+              mapRef.current.panTo(CASA);
+              mapRef.current.setZoom(12);
+            }
+          }}
+        >
+          Limpiar ruta
+        </button>
+        {dest && (
+          <button
+            className="px-3 py-2 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800"
+            onClick={() => openExternalDirections(dest)}
+          >
+            Abrir “Cómo llegar” en Google Maps
+          </button>
+        )}
+      </div>
     </div>
   ) : (
     <div className="rounded-2xl border h-[520px] grid place-items-center">
@@ -162,3 +186,4 @@ export default function MapView() {
     </div>
   );
 }
+
