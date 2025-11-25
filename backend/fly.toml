@@ -10,28 +10,29 @@ primary_region = "cdg"
 [[services]]
   internal_port = 8080
   processes = ["app"]
-
-  [[services.ports]]
-    port = 80
-    handlers = ["http"]
-
-  [[services.ports]]
-    port = 443
-    handlers = ["tls", "http"]
+  protocol = "tcp"
 
   [[services.http_checks]]
+    grace_period = "1m0s"
     interval = "10s"
-    timeout = "5s"
-    grace_period = "60s"
     method = "GET"
     path = "/api/health"
     protocol = "http"
+    timeout = "5s"
     port = 8080
 
   [[services.tcp_checks]]
+    grace_period = "1m30s"
     interval = "10s"
     timeout = "5s"
-    grace_period = "90s"
     port = 8080
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
 
 
