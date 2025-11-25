@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import Place from "../models/Place.js";
 import { validateObjectId } from "../middleware/validateObjectId.js";
 

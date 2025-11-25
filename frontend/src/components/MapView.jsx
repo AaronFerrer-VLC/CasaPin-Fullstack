@@ -22,6 +22,7 @@ export default function MapView() {
 
   const acRef = useRef(null);
   const mapRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     if (!apiBase) {
@@ -123,6 +124,7 @@ export default function MapView() {
             onPlaceChanged={onPlaceChanged}
           >
             <input
+              ref={inputRef}
               type="text"
               placeholder="Buscar sitio cercano..."
               className="flex-1 px-3 py-2 rounded-lg border outline-none bg-white dark:bg-gray-900"
@@ -133,6 +135,15 @@ export default function MapView() {
             onClick={() => {
               setDirections(null);
               setDest(null);
+              // Limpiar el input de búsqueda
+              if (inputRef.current) {
+                inputRef.current.value = "";
+              }
+              // Limpiar el Autocomplete
+              if (acRef.current) {
+                acRef.current.set("place", null);
+              }
+              // Resetear el mapa
               if (mapRef.current) {
                 mapRef.current.panTo(CASA);
                 mapRef.current.setZoom(12);
