@@ -9,7 +9,12 @@ export default function MapView() {
   const apiBase = import.meta.env.VITE_API_BASE_URL || "";
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
-  const { isLoaded } = useJsApiLoader({id: "gmaps-script",googleMapsApiKey: apiKey,libraries: LIBRARIES,});
+  // Solo cargar Google Maps si hay API key válida
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: "gmaps-script",
+    googleMapsApiKey: apiKey || "",
+    libraries: LIBRARIES,
+  });
 
   const [places, setPlaces] = useState([]);
   const [directions, setDirections] = useState(null);
@@ -71,10 +76,20 @@ export default function MapView() {
     routeTo(to);
   };
 
-  if (!apiKey) {
+  // Si no hay API key o hay error de carga, mostrar mensaje amigable
+  if (!apiKey || loadError) {
     return (
-      <div className="rounded-2xl border h-[520px] grid place-items-center">
-        Falta VITE_GOOGLE_MAPS_API_KEY
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 h-[520px] grid place-items-center bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400 mb-2">
+            El mapa no está disponible en este momento.
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            {!apiKey
+              ? "Configura VITE_GOOGLE_MAPS_API_KEY para habilitar el mapa."
+              : "Error al cargar el mapa. Verifica la configuración de la API key."}
+          </p>
+        </div>
       </div>
     );
   }
