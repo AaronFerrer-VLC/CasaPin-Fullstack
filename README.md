@@ -4,8 +4,6 @@
 - Frontend: React + Vite + Tailwind + Leaflet (Netlify)  
 - Backend: Node.js + Express + MongoDB (Fly.io)  
 
-> Motivo: Tu proyecto original estaba en Django con SQLite. Para cumplir **MongoDB (Compass)** + **Netlify** + **Fly.io**, la opción más estable es Express + MongoDB (Mongoose) para el backend y React para el frontend.
-
 ---
 
 ## 1) Requisitos
