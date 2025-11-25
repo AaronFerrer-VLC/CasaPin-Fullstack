@@ -23,4 +23,3 @@ export const contactLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-

@@ -17,6 +17,12 @@ describe("GET /api/places", () => {
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/casapin-test");
     }
+    // Esperar a que la conexión esté lista
+    if (mongoose.connection.readyState !== 1) {
+      await new Promise((resolve) => {
+        mongoose.connection.once("connected", resolve);
+      });
+    }
     // Limpiar colección
     await Place.deleteMany({});
     // Crear lugar de prueba
@@ -31,6 +37,10 @@ describe("GET /api/places", () => {
 
   afterEach(async () => {
     await Place.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await mongoose.disconnect();
   });
 
   it("debe retornar lista de lugares", async () => {
@@ -70,4 +80,3 @@ describe("GET /api/places", () => {
     expect(res.body.ok).toBe(false);
   });
 });
-

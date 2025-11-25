@@ -19,10 +19,11 @@ router.post("/refresh-ratings", requireAdmin, async (req, res) => {
 
   const limit = Math.min(parseInt(req.query.limit || "100", 10), 200);
   const places = await Place.find({ googlePlaceId: { $exists: true, $ne: null } })
-                            .sort({ ratingUpdatedAt: 1 })
-                            .limit(limit);
+    .sort({ ratingUpdatedAt: 1 })
+    .limit(limit);
 
-  let ok = 0, fail = 0;
+  let ok = 0,
+    fail = 0;
   const results = [];
 
   for (const p of places) {
@@ -34,7 +35,12 @@ router.post("/refresh-ratings", requireAdmin, async (req, res) => {
 
       await p.save();
       ok++;
-      results.push({ id: p._id, name: p.name, rating: p.rating, userRatingsTotal: p.userRatingsTotal });
+      results.push({
+        id: p._id,
+        name: p.name,
+        rating: p.rating,
+        userRatingsTotal: p.userRatingsTotal,
+      });
     } catch (e) {
       fail++;
       results.push({ id: p._id, name: p.name, error: e.message });

@@ -65,4 +65,3 @@ describe("POST /api/contact", () => {
     expect(res.body.ok).toBe(true);
   });
 });
-

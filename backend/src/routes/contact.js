@@ -15,11 +15,7 @@ router.post(
       .isLength({ min: 2, max: 100 })
       .withMessage("El nombre debe tener entre 2 y 100 caracteres")
       .escape(),
-    body("email")
-      .trim()
-      .isEmail()
-      .withMessage("Email inválido")
-      .normalizeEmail(),
+    body("email").trim().isEmail().withMessage("Email inválido").normalizeEmail(),
     body("message")
       .trim()
       .isLength({ min: 10, max: 2000 })
@@ -89,5 +85,3 @@ router.post(
 );
 
 export default router;
-
-

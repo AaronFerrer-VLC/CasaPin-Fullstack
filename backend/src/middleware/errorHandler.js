@@ -53,10 +53,7 @@ export const errorHandler = (err, req, res, _next) => {
   // Error genérico (no exponer detalles en producción)
   res.status(err.status || 500).json({
     ok: false,
-    error:
-      process.env.NODE_ENV === "production"
-        ? "Error interno del servidor"
-        : err.message,
+    error: process.env.NODE_ENV === "production" ? "Error interno del servidor" : err.message,
   });
 };
 
@@ -67,4 +64,3 @@ export const notFoundHandler = (req, res) => {
     error: "Ruta no encontrada",
   });
 };
-

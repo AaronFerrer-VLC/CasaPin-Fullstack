@@ -33,7 +33,11 @@ const corsOptions = {
     if (!origin && process.env.NODE_ENV === "development") {
       return callback(null, true);
     }
-    if (allowedOrigins.includes("*") || allowedOrigins.includes(origin) || (!origin && process.env.NODE_ENV === "development")) {
+    if (
+      allowedOrigins.includes("*") ||
+      allowedOrigins.includes(origin) ||
+      (!origin && process.env.NODE_ENV === "development")
+    ) {
       callback(null, true);
     } else {
       callback(new Error("No permitido por CORS"));
@@ -90,7 +94,7 @@ app.listen(PORT, HOST, () => {
     console.error("Missing MONGODB_URI");
     return;
   }
-  
+
   // Asegurar que la URI tenga nombre de base de datos
   let mongoUri = uri.trim();
   if (mongoUri.endsWith("/")) {
@@ -99,7 +103,7 @@ app.listen(PORT, HOST, () => {
     // Si no tiene base de datos, agregarla
     mongoUri = mongoUri + "/casapin";
   }
-  
+
   try {
     await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 30000, // Aumentado a 30 segundos
@@ -119,7 +123,3 @@ process.on("uncaughtException", (e) => {
   console.error("UNCAUGHT:", e);
   process.exit(1);
 });
-
-
-
-
