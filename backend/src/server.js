@@ -71,8 +71,12 @@ app.get("/api/health", (_req, res) => {
     ok: dbStatus,
     db: dbStatus ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
   };
-  console.log("Health check:", healthData);
+  // Log solo en desarrollo para no saturar logs en producción
+  if (process.env.NODE_ENV === "development") {
+    console.log("Health check:", healthData);
+  }
   res.status(200).json(healthData);
 });
 
