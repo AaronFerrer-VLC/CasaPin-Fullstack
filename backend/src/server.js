@@ -67,11 +67,13 @@ app.get("/api/health", (_req, res) => {
   const dbStatus = mongoose.connection.readyState === 1;
   // Siempre responder 200 para que el health check pase
   // El estado de DB se indica en el JSON pero no afecta el código HTTP
-  res.status(200).json({
+  const healthData = {
     ok: dbStatus,
     db: dbStatus ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
-  });
+  };
+  console.log("Health check:", healthData);
+  res.status(200).json(healthData);
 });
 
 // Aplicar rate limiting a todas las rutas API (después de health check)
@@ -91,8 +93,9 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // --- Escuchar UNA sola vez ---
-app.listen(PORT, HOST, () => {
+const server = app.listen(PORT, HOST, () => {
   console.log(`API listening on http://${HOST}:${PORT}`);
+  console.log(`Health check available at http://${HOST}:${PORT}/api/health`);
 });
 
 // --- Conexión Mongo asíncrona (sin tumbar el proceso) ---
