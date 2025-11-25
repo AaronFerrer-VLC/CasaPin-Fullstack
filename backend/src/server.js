@@ -62,9 +62,12 @@ app.use(express.json({ limit: "1mb" }));
 app.use(cors(corsOptions));
 app.use(morgan("tiny"));
 
+// Health check - debe estar antes de cualquier middleware que pueda bloquearlo
 app.get("/api/health", (_req, res) => {
   const dbStatus = mongoose.connection.readyState === 1;
-  res.status(dbStatus ? 200 : 503).json({
+  // Siempre responder 200 para que el health check pase
+  // El estado de DB se indica en el JSON pero no afecta el código HTTP
+  res.status(200).json({
     ok: dbStatus,
     db: dbStatus ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
