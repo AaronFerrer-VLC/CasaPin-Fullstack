@@ -21,6 +21,7 @@ primary_region = "cdg"
     handlers = ["tls", "http"]
 
   # Health checks HTTP -> /api/health
+  # IMPORTANTE: Usar el puerto interno (8080) y protocolo HTTP explícito
   [[services.http_checks]]
     method = "GET"
     path = "/api/health"
@@ -28,8 +29,6 @@ primary_region = "cdg"
     timeout = "10s"
     grace_period = "180s"
     protocol = "http"
-    tls_skip_verify = false
-    # Usar el puerto interno directamente
     port = 8080
 
   # TCP check por si arranca más lento
