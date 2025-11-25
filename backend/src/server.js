@@ -63,7 +63,7 @@ app.use(cors(corsOptions));
 app.use(morgan("tiny"));
 
 // Health check - debe estar antes de cualquier middleware que pueda bloquearlo
-app.get("/api/health", (_req, res) => {
+app.get("/api/health", (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1;
   // Siempre responder 200 para que el health check pase
   // El estado de DB se indica en el JSON pero no afecta el código HTTP
@@ -73,10 +73,8 @@ app.get("/api/health", (_req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   };
-  // Log solo en desarrollo para no saturar logs en producción
-  if (process.env.NODE_ENV === "development") {
-    console.log("Health check:", healthData);
-  }
+  // Log para debugging de health checks de Fly.io
+  console.log(`[HEALTH] ${req.method} ${req.path} - Status: 200`);
   res.status(200).json(healthData);
 });
 

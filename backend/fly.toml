@@ -29,6 +29,8 @@ primary_region = "cdg"
     grace_period = "180s"
     protocol = "http"
     tls_skip_verify = false
+    # Usar el puerto interno directamente
+    port = 8080
 
   # TCP check por si arranca más lento
   [[services.tcp_checks]]
