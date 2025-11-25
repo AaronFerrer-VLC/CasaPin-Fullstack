@@ -33,15 +33,20 @@ const corsOptions = {
     if (!origin && process.env.NODE_ENV === "development") {
       return callback(null, true);
     }
-    if (
-      allowedOrigins.includes("*") ||
-      allowedOrigins.includes(origin) ||
-      (!origin && process.env.NODE_ENV === "development")
-    ) {
-      callback(null, true);
-    } else {
-      callback(new Error("No permitido por CORS"));
+    // Si allowedOrigins incluye "*", permitir todo
+    if (allowedOrigins.includes("*")) {
+      return callback(null, true);
     }
+    // Verificar si el origin está en la lista permitida
+    if (origin && allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Si no hay origin (algunos clientes no envían origin), permitir en desarrollo
+    if (!origin && process.env.NODE_ENV === "development") {
+      return callback(null, true);
+    }
+    // Rechazar en otros casos
+    callback(new Error(`CORS: Origin ${origin} not allowed. Allowed: ${allowedOrigins.join(", ")}`));
   },
   credentials: true,
   optionsSuccessStatus: 200,
