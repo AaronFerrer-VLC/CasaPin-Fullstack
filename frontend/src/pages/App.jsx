@@ -46,17 +46,58 @@ const [form, setForm] = useState({
 // Estado de envío y resultado
 const [sending, setSending] = useState(false);
 const [status, setStatus] = useState(null); // { ok: boolean, msg: string }
+const [errors, setErrors] = useState({}); // Errores de validación
+
+// Validación de email
+const validateEmail = (email) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
+// Validar formulario
+const validateForm = () => {
+  const newErrors = {};
+
+  if (!form.name.trim() || form.name.trim().length < 2) {
+    newErrors.name = "El nombre debe tener al menos 2 caracteres";
+  }
+
+  if (!validateEmail(form.email)) {
+    newErrors.email = "Email inválido";
+  }
+
+  if (!form.message.trim() || form.message.trim().length < 10) {
+    newErrors.message = "El mensaje debe tener al menos 10 caracteres";
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
 
 // Helpers
 const onChange = (e) => {
   const { name, value } = e.target;
   setForm((f) => ({ ...f, [name]: value }));
+  // Limpiar error del campo cuando el usuario empieza a escribir
+  if (errors[name]) {
+    setErrors((e) => ({ ...e, [name]: "" }));
+  }
 };
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+
+  // Validar antes de enviar
+  if (!validateForm()) {
+    setStatus({
+      ok: false,
+      msg: "Por favor, corrige los errores en el formulario.",
+    });
+    return;
+  }
+
   setSending(true);
   setStatus(null);
+  setErrors({});
 
   try {
     const res = await fetch(`${api}/api/contact`, {
@@ -65,18 +106,22 @@ const handleSubmit = async (e) => {
       body: JSON.stringify(form),
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      // intenta leer mensaje del servidor
+      // Intentar leer mensaje del servidor
       let msg = "No se pudo enviar. Inténtalo de nuevo.";
-      try {
-        const data = await res.json();
-        if (data?.error) msg = data.error;
-      } catch {}
+      if (data?.error) {
+        msg = data.error;
+      } else if (data?.errors && Array.isArray(data.errors)) {
+        msg = data.errors.map((e) => e.msg || e.message).join(", ");
+      }
       throw new Error(msg);
     }
 
     setStatus({ ok: true, msg: "¡Mensaje enviado! Te responderemos muy pronto." });
     setForm({ name: "", email: "", dates: "", message: "" });
+    setErrors({});
   } catch (err) {
     setStatus({
       ok: false,
@@ -284,21 +329,71 @@ const handleSubmit = async (e) => {
     </div>
   )}
 
-  <input name="name" value={form.name} onChange={onChange}
-    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-    placeholder="Tu nombre" required />
+  <div>
+    <input
+      name="name"
+      value={form.name}
+      onChange={onChange}
+      className={`w-full border rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 ${
+        errors.name
+          ? "border-red-500 dark:border-red-500"
+          : "border-gray-300 dark:border-gray-700"
+      }`}
+      placeholder="Tu nombre"
+      required
+    />
+    {errors.name && (
+      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.name}</p>
+    )}
+  </div>
 
-  <input name="email" value={form.email} onChange={onChange}
-    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-    placeholder="Email" type="email" required />
+  <div>
+    <input
+      name="email"
+      value={form.email}
+      onChange={onChange}
+      className={`w-full border rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 ${
+        errors.email
+          ? "border-red-500 dark:border-red-500"
+          : "border-gray-300 dark:border-gray-700"
+      }`}
+      placeholder="Email"
+      type="email"
+      required
+    />
+    {errors.email && (
+      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.email}</p>
+    )}
+  </div>
 
-  <input name="dates" value={form.dates} onChange={onChange}
-    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-    placeholder="Fechas (aprox.)" />
+  <div>
+    <input
+      name="dates"
+      value={form.dates}
+      onChange={onChange}
+      className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
+      placeholder="Fechas (aprox.)"
+    />
+  </div>
 
-  <textarea name="message" value={form.message} onChange={onChange}
-    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2"
-    rows="4" placeholder="Mensaje" required />
+  <div>
+    <textarea
+      name="message"
+      value={form.message}
+      onChange={onChange}
+      className={`w-full border rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 ${
+        errors.message
+          ? "border-red-500 dark:border-red-500"
+          : "border-gray-300 dark:border-gray-700"
+      }`}
+      rows="4"
+      placeholder="Mensaje"
+      required
+    />
+    {errors.message && (
+      <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.message}</p>
+    )}
+  </div>
 
   <button type="submit" disabled={sending}
     className="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60">
