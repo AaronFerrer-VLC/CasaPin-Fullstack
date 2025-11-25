@@ -85,8 +85,10 @@ app.use("/api", apiLimiter);
 app.use("/api/places", placesRouter);
 app.use("/api/contact", contactRouter);
 
-// Raíz
-app.get("/", (_req, res) => res.send("CasaPin API ✔"));
+// Raíz - para comprobaciones rápidas
+app.get("/", (_req, res) => {
+  res.send("OK");
+});
 
 // 404 handler (después de todas las rutas)
 app.use(notFoundHandler);

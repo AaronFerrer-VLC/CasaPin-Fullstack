@@ -22,15 +22,16 @@ primary_region = "cdg"
   [[services.http_checks]]
     interval = "10s"
     timeout = "5s"
-    grace_period = "30s"
+    grace_period = "60s"
     method = "GET"
     path = "/api/health"
     protocol = "http"
+    port = 8080
 
-  # TCP check por si arranca más lento
   [[services.tcp_checks]]
     interval = "10s"
     timeout = "5s"
     grace_period = "90s"
+    port = 8080
 
 
