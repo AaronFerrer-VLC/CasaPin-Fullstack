@@ -6,6 +6,15 @@ const router = express.Router();
 
 router.get("/", async (req, res, next) => {
   try {
+    // Verificar conexión a MongoDB
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        ok: false,
+        error: "Base de datos no disponible",
+        dbStatus: mongoose.connection.readyState,
+      });
+    }
+
     const { type } = req.query;
     // Validar que type sea uno de los valores permitidos
     const validTypes = ["beach", "restaurant", "activity", "poi"];
@@ -13,6 +22,7 @@ router.get("/", async (req, res, next) => {
     const items = await Place.find(q).sort({ name: 1 }).lean();
     res.json(items);
   } catch (e) {
+    console.error("Error en GET /api/places:", e.message);
     next(e);
   }
 });

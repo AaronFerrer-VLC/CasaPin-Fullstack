@@ -90,12 +90,27 @@ app.listen(PORT, HOST, () => {
     console.error("Missing MONGODB_URI");
     return;
   }
+  
+  // Asegurar que la URI tenga nombre de base de datos
+  let mongoUri = uri.trim();
+  if (mongoUri.endsWith("/")) {
+    mongoUri = mongoUri + "casapin";
+  } else if (!mongoUri.includes("/") || mongoUri.split("/").length < 4) {
+    // Si no tiene base de datos, agregarla
+    mongoUri = mongoUri + "/casapin";
+  }
+  
   try {
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 8000 });
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 30000, // Aumentado a 30 segundos
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+    });
     dbReady = true;
-    console.log("MongoDB connected");
+    console.log("MongoDB connected to:", mongoose.connection.name);
   } catch (err) {
     console.error("MongoDB init error:", err.message);
+    console.error("MongoDB URI (sin password):", mongoUri.replace(/:[^:@]+@/, ":****@"));
   }
 })();
 
