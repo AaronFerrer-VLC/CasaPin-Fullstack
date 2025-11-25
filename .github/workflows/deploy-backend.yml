@@ -29,8 +29,29 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
-      - name: Deploy (remote build, Paris)
-        run: flyctl deploy -a casapin-backend --remote-only --primary-region cdg --no-cache --verbose --wait-timeout 600
+      - name: Deploy (remote build, Paris) with retry
+        run: |
+          MAX_ATTEMPTS=3
+          RETRY_DELAY=30
+          ATTEMPT=1
+          
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Deploy attempt $ATTEMPT of $MAX_ATTEMPTS..."
+            if flyctl deploy -a casapin-backend --remote-only --primary-region cdg --no-cache --verbose --wait-timeout 600; then
+              echo "✅ Deploy successful!"
+              exit 0
+            else
+              EXIT_CODE=$?
+              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                echo "⚠️ Deploy failed (exit code: $EXIT_CODE). Retrying in $RETRY_DELAY seconds..."
+                sleep $RETRY_DELAY
+                ATTEMPT=$((ATTEMPT + 1))
+              else
+                echo "❌ Deploy failed after $MAX_ATTEMPTS attempts"
+                exit $EXIT_CODE
+              fi
+            fi
+          done
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
