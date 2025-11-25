@@ -62,9 +62,6 @@ app.use(express.json({ limit: "1mb" }));
 app.use(cors(corsOptions));
 app.use(morgan("tiny"));
 
-// Aplicar rate limiting a todas las rutas API
-app.use("/api", apiLimiter);
-
 app.get("/api/health", (_req, res) => {
   const dbStatus = mongoose.connection.readyState === 1;
   res.status(dbStatus ? 200 : 503).json({
@@ -73,6 +70,9 @@ app.get("/api/health", (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Aplicar rate limiting a todas las rutas API (después de health check)
+app.use("/api", apiLimiter);
 
 // Rutas API
 app.use("/api/places", placesRouter);
@@ -102,12 +102,17 @@ app.listen(PORT, HOST, () => {
 
   // Asegurar que la URI tenga nombre de base de datos
   let mongoUri = uri.trim();
+  
+  // Solo agregar base de datos si la URI termina en "/" sin nombre de DB
+  // No modificar si ya tiene base de datos o parámetros de query
   if (mongoUri.endsWith("/")) {
+    // URI termina en "/" sin base de datos, agregarla
     mongoUri = mongoUri + "casapin";
-  } else if (!mongoUri.includes("/") || mongoUri.split("/").length < 4) {
-    // Si no tiene base de datos, agregarla
-    mongoUri = mongoUri + "/casapin";
+  } else if (mongoUri.match(/mongodb\+srv:\/\/[^/]+\/?$/)) {
+    // URI de Atlas sin base de datos ni query params, agregar base de datos
+    mongoUri = mongoUri.replace(/\/?$/, "/casapin");
   }
+  // Si ya tiene base de datos o query params, no modificar
 
   try {
     await mongoose.connect(mongoUri, {
