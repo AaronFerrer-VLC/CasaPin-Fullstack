@@ -1,26 +1,31 @@
 import express from "express";
 import Place from "../models/Place.js";
+import { validateObjectId } from "../middleware/validateObjectId.js";
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
   try {
     const { type } = req.query;
-    const q = type ? { type } : {};
+    // Validar que type sea uno de los valores permitidos
+    const validTypes = ["beach", "restaurant", "activity", "poi"];
+    const q = type && validTypes.includes(type) ? { type } : {};
     const items = await Place.find(q).sort({ name: 1 }).lean();
     res.json(items);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    next(e);
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", validateObjectId, async (req, res, next) => {
   try {
     const item = await Place.findById(req.params.id).lean();
-    if (!item) return res.status(404).json({ error: "Not found" });
+    if (!item) {
+      return res.status(404).json({ ok: false, error: "No encontrado" });
+    }
     res.json(item);
   } catch (e) {
-    res.status(400).json({ error: "Invalid id" });
+    next(e);
   }
 });
 
