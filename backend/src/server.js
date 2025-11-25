@@ -56,13 +56,8 @@ const corsOptions = {
 // eslint-disable-next-line no-unused-vars
 let dbReady = false;
 
-app.use(helmet());
-app.use(compression());
-app.use(express.json({ limit: "1mb" }));
-app.use(cors(corsOptions));
-app.use(morgan("tiny"));
-
-// Health check - debe estar antes de cualquier middleware que pueda bloquearlo
+// Health check - DEBE estar ANTES de CORS y cualquier middleware que pueda bloquearlo
+// Fly.io hace health checks sin origin, así que no debe pasar por CORS
 app.get("/api/health", (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1;
   // Siempre responder 200 para que el health check pase
@@ -77,6 +72,12 @@ app.get("/api/health", (req, res) => {
   console.log(`[HEALTH] ${req.method} ${req.path} - Status: 200`);
   res.status(200).json(healthData);
 });
+
+app.use(helmet());
+app.use(compression());
+app.use(express.json({ limit: "1mb" }));
+app.use(cors(corsOptions));
+app.use(morgan("tiny"));
 
 // Aplicar rate limiting a todas las rutas API (después de health check)
 app.use("/api", apiLimiter);
