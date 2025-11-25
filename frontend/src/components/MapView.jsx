@@ -24,10 +24,29 @@ export default function MapView() {
   const mapRef = useRef(null);
 
   useEffect(() => {
+    if (!apiBase) {
+      console.warn("VITE_API_BASE_URL no está configurado para MapView");
+      return;
+    }
     fetch(`${apiBase}/api/places`)
-      .then((r) => r.json())
-      .then((d) => (Array.isArray(d) ? setPlaces(d) : setPlaces([])))
-      .catch(() => setPlaces([]));
+      .then((r) => {
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status}`);
+        }
+        return r.json();
+      })
+      .then((d) => {
+        if (Array.isArray(d)) {
+          setPlaces(d);
+          console.log(`MapView: Cargados ${d.length} lugares`);
+        } else {
+          setPlaces([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Error al cargar lugares en MapView:", err);
+        setPlaces([]);
+      });
   }, [apiBase]);
 
   // Coordenadas Casa Pin (desde .env)

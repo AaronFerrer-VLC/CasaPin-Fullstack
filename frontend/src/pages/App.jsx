@@ -11,10 +11,30 @@ export default function App() {
   // Carga de lugares desde tu API
   useEffect(() => {
     const api = import.meta.env.VITE_API_BASE_URL || "";
+    if (!api) {
+      console.warn("VITE_API_BASE_URL no está configurado");
+      return;
+    }
     fetch(`${api}/api/places`)
-      .then((r) => r.json())
-      .then((d) => setPlaces(Array.isArray(d) ? d : []))
-      .catch(() => setPlaces([]));
+      .then((r) => {
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status}`);
+        }
+        return r.json();
+      })
+      .then((d) => {
+        if (Array.isArray(d)) {
+          setPlaces(d);
+          console.log(`Cargados ${d.length} lugares`);
+        } else {
+          console.warn("La API no devolvió un array:", d);
+          setPlaces([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Error al cargar lugares:", err);
+        setPlaces([]);
+      });
   }, []);
 
   // Listas para las 3 columnas (sin fallback)
@@ -226,14 +246,15 @@ const handleSubmit = async (e) => {
         />
       </section>
 
-      {/* ALREDEDORES (solo si hay datos de la API) */}
-      {hasAround && (
-        <section id="alrededores" className="max-w-6xl mx-auto px-4 py-12">
-          <h2 className="text-2xl md:text-3xl font-semibold">Alrededores</h2>
-          <p className="mt-3 text-gray-700 dark:text-gray-300 max-w-3xl">
-            Playas salvajes, cuevas con arte rupestre y pueblos marineros.
-          </p>
+      {/* ALREDEDORES - Siempre mostrar, con o sin datos */}
+      <section id="alrededores" className="max-w-6xl mx-auto px-4 py-12">
+        <h2 className="text-2xl md:text-3xl font-semibold">Alrededores</h2>
+        <p className="mt-3 text-gray-700 dark:text-gray-300 max-w-3xl">
+          Playas salvajes, cuevas con arte rupestre y pueblos marineros.
+        </p>
 
+        {/* Mostrar lugares si hay datos */}
+        {hasAround && (
           <div className="mt-6 grid md:grid-cols-3 gap-6">
             {beaches.length > 0 && (
               <div>
@@ -268,15 +289,20 @@ const handleSubmit = async (e) => {
               </div>
             )}
           </div>
+        )}
 
-          {/* Mapa solo si hay lugares */}
-          {places.length > 0 && (
-            <div className="mt-8">
-              <MapView />
-            </div>
-          )}
-        </section>
-      )}
+        {/* Mapa siempre visible */}
+        <div className="mt-8">
+          <MapView />
+        </div>
+
+        {/* Mensaje si no hay lugares */}
+        {!hasAround && (
+          <div className="mt-6 text-center text-gray-600 dark:text-gray-400">
+            <p>Los lugares cercanos se cargarán próximamente.</p>
+          </div>
+        )}
+      </section>
 
       {/* PRECIOS */}
       <section id="precios" className="max-w-6xl mx-auto px-4 py-12">
