@@ -94,8 +94,10 @@ app.use(errorHandler);
 
 // --- Escuchar UNA sola vez ---
 const server = app.listen(PORT, HOST, () => {
-  console.log(`API listening on http://${HOST}:${PORT}`);
-  console.log(`Health check available at http://${HOST}:${PORT}/api/health`);
+  console.log(`✅ Server started successfully`);
+  console.log(`📡 API listening on http://${HOST}:${PORT}`);
+  console.log(`🏥 Health check available at http://${HOST}:${PORT}/api/health`);
+  console.log(`⏰ Ready to accept connections`);
 });
 
 // --- Conexión Mongo asíncrona (sin tumbar el proceso) ---
