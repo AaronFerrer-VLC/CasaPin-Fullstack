@@ -7,32 +7,20 @@ primary_region = "cdg"
 [env]
   PORT = "8080"
 
-[[services]]
+[http_service]
   internal_port = 8080
-  processes = ["app"]
-  protocol = "tcp"
+  force_https = true
 
-  [[services.http_checks]]
+  # ⚡ Auto-apagado para ahorrar dinero
+  auto_stop_machines = true       # Apaga la máquina cuando no hay tráfico
+  auto_start_machines = true      # La enciende cuando llegue una petición
+  min_machines_running = 0        # Permite que no haya máquinas activas
+
+  [[http_service.checks]]
     grace_period = "1m0s"
     interval = "10s"
+    timeout = "5s"
     method = "GET"
     path = "/api/health"
     protocol = "http"
-    timeout = "5s"
-    port = 8080
-
-  [[services.tcp_checks]]
-    grace_period = "1m30s"
-    interval = "10s"
-    timeout = "5s"
-    port = 8080
-
-  [[services.ports]]
-    handlers = ["http"]
-    port = 80
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
-
 
